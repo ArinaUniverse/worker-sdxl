@@ -8,6 +8,7 @@ from diffusers import (
     AutoencoderKL,
 )
 from diffusers.utils import load_image
+from safetensors.torch import load_file
 
 from diffusers import (
     PNDMScheduler,
@@ -39,9 +40,10 @@ class ModelHandler:
             torch_dtype=torch.float16,
             local_files_only=True,
         )
-        # Load Base Pipeline from cache using identifier
+        
+        # Load Base Pipeline with Gemini checkpoint
         base_pipe = StableDiffusionXLPipeline.from_pretrained(
-            "stabilityai/stable-diffusion-xl-base-1.0",
+            "CuteBlueEyed/GeminiX",
             vae=vae,
             torch_dtype=torch.float16,
             variant="fp16",
@@ -49,8 +51,17 @@ class ModelHandler:
             add_watermarker=False,
             local_files_only=True,
         ).to("cuda")
+        
+        # Load LoRA if available in network volume
+        lora_path = "/workspace/loras"
+        if os.path.exists(lora_path):
+            for lora_file in os.listdir(lora_path):
+                if lora_file.endswith('.safetensors'):
+                    lora_path_full = os.path.join(lora_path, lora_file)
+                    print(f"Loading LoRA from: {lora_path_full}")
+                    base_pipe.load_lora_weights(lora_path_full)
+        
         base_pipe.enable_xformers_memory_efficient_attention()
-
         return base_pipe
 
     def load_refiner(self):
