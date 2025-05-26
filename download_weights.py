@@ -35,7 +35,7 @@ def get_diffusion_pipelines():
 
     pipe = fetch_pretrained_model(
         StableDiffusionXLPipeline,
-        "stabilityai/stable-diffusion-xl-base-1.0",
+        "CuteBlueEyed/GeminiX",
         **common_args,
     )
     vae = fetch_pretrained_model(
